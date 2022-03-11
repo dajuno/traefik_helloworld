@@ -1,0 +1,21 @@
+log:
+    level: DEBUG
+
+api:
+    dashboard: true
+
+providers:
+    docker:
+        exposedByDefault: false
+
+entryPoints:
+    web:
+        address: :80
+        # redirect to https
+        http:
+            redirections:
+                entryPoint:
+                    to: websecure
+                    scheme: https
+    websecure:
+        address: :443

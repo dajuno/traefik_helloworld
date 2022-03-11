@@ -1,0 +1,47 @@
+# vim: set tw=2:sw=2:
+
+version: "3.4"
+
+services:
+  traefik:
+    image: "traefik:v2.6"
+    ports:
+      - "80:80"
+      - "443:443"
+    #   - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
+      - "./traefik/conf:/traefik_conf:ro"
+      # - "./cert/localhost.crt:/etc/ssl/certs/localhost.crt"
+      # - "./cert/localhost.key:/etc/ssl/private/localhost.key"
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.dashboard.rule=Host(`portal.mardi4nfdi.local`)"
+        - "traefik.http.routers.dashboard.entrypoints=websecure"
+        - "traefik.http.routers.dashboard.tls=true"
+        - "traefik.http.routers.dashboard.service=api@internal"
+        - "traefik.http.routers.dashboard.middlewares=auth"
+        - "traefik.http.middlewares.auth.basicauth.users=test:$$apr1$$nVbM1m5d$$tNZLXH92DkqltUYh8Z3.00"
+        # test:test1312
+
+  whoamiii:
+    image: "traefik/whoami"
+    # container_name: "simple-service"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami-http.rule=Host(`portal.mardi4nfdi.local`) && PathPrefix(`/whoami`)"
+      - "traefik.http.routers.whoami-http.entrypoints=web"
+      - "traefik.http.routers.whoami-https.rule=Host(`portal.mardi4nfdi.local`) && PathPrefix(`/whoami`)"
+      - "traefik.http.routers.whoami-https.entrypoints=websecure"
+      - "traefik.http.routers.whoami-https.tls=true"
+
+  nginx:
+    image: "nginx"
+    volumes:
+      - "./src:/usr/share/nginx/html"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.rule=Host(`portal.mardi4nfdi.local`) && PathPrefix(`/nginx`)"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.tls=true"
